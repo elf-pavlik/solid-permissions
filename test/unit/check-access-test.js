@@ -51,7 +51,7 @@ test('PermissionSet checkAccess() test - default/inherited', function (t) {
   let ps = new PermissionSet(containerUrl, containerAclUrl)
   // Now add a default / inherited permission for the container
   let inherit = true
-  ps.addAuthorizationFor(containerUrl, inherit, aliceWebId, acl.READ)
+  ps.addAuthorizationFor(containerUrl, containerAclUrl, inherit, aliceWebId, acl.READ)
 
   let resourceUrl = 'https://alice.example.com/docs/file1'
   ps.checkAccess(resourceUrl, aliceWebId, acl.READ)
@@ -77,7 +77,7 @@ test('PermissionSet checkAccess() test - public access', function (t) {
   let inherit = true
 
   // First, let's test an inherited allow public read permission
-  let auth1 = new Authorization(containerUrl, inherit)
+  let auth1 = new Authorization(containerUrl, containerAclUrl, inherit)
   auth1.setPublic()
   auth1.addMode(acl.READ)
   ps.addAuthorization(auth1)
@@ -89,7 +89,7 @@ test('PermissionSet checkAccess() test - public access', function (t) {
       t.ok(result, 'Everyone should have inherited read access to file')
       // Reset the permission set, test a non-default permission
       ps = new PermissionSet()
-      let auth2 = new Authorization(resourceUrl, !inherit)
+      let auth2 = new Authorization(resourceUrl, containerAclUrl, !inherit)
       auth2.setPublic()
       auth2.addMode(acl.READ)
       ps.addAuthorization(auth2)

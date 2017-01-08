@@ -195,6 +195,7 @@ class PermissionSet {
    * @method addAuthorizationFor
    * @private
    * @param resourceUrl {String}
+   * @param aclUrl {String}
    * @param inherit {Boolean}
    * @param agent {string|Quad|GroupListing} Agent URL (or `acl:agent` RDF triple).
    * @param [accessModes=[]] {string|NamedNode|Array} 'READ'/'WRITE' etc.
@@ -202,9 +203,9 @@ class PermissionSet {
    * @param [mailTos=[]] {Array<String>}
    * @return {PermissionSet} Returns self, chainable
    */
-  addAuthorizationFor (resourceUrl, inherit, agent, accessModes = [],
+  addAuthorizationFor (resourceUrl, aclUrl, inherit, agent, accessModes = [],
                        origins = [], mailTos = []) {
-    let auth = new Authorization(resourceUrl, inherit)
+    let auth = new Authorization(resourceUrl, aclUrl, inherit)
     if (agent instanceof GroupListing) {
       auth.setGroup(agent.listing)
     } else {
@@ -247,7 +248,7 @@ class PermissionSet {
     if (!this.resourceUrl) {
       throw new Error('Cannot add a permission to a PermissionSet with no resourceUrl')
     }
-    var auth = new Authorization(this.resourceUrl, this.isAuthInherited())
+    var auth = new Authorization(this.resourceUrl, this.aclUrl, this.isAuthInherited())
     auth.setGroup(webId)
     auth.addMode(accessMode)
     this.addAuthorization(auth)
@@ -272,7 +273,7 @@ class PermissionSet {
     if (!this.resourceUrl) {
       throw new Error('Cannot add a permission to a PermissionSet with no resourceUrl')
     }
-    var auth = new Authorization(this.resourceUrl, this.isAuthInherited())
+    var auth = new Authorization(this.resourceUrl, this.aclUrl, this.isAuthInherited())
     auth.setAgent(webId)
     auth.addMode(accessMode)
     if (origin) {
@@ -724,7 +725,7 @@ class PermissionSet {
         let accessToMatches = graph.match(fragment, ns.acl('accessTo'))
         accessToMatches.forEach(resourceMatch => {
           let resourceUrl = resourceMatch.object.value
-          this.addAuthorizationFor(resourceUrl, acl.NOT_INHERIT,
+          this.addAuthorizationFor(resourceUrl, this.aclUrl, acl.NOT_INHERIT,
             agentMatch, accessModes, origins, mailTos)
         })
         // Extract inherited / acl:default statements
@@ -732,7 +733,7 @@ class PermissionSet {
           .concat(graph.match(fragment, ns.acl('defaultForNew')))
         inheritedMatches.forEach(containerMatch => {
           let containerUrl = containerMatch.object.value
-          this.addAuthorizationFor(containerUrl, acl.INHERIT,
+          this.addAuthorizationFor(containerUrl, this.aclUrl, acl.INHERIT,
             agentMatch, accessModes, origins, mailTos)
         })
       })

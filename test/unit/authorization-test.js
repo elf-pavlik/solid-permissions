@@ -7,6 +7,7 @@ const Authorization = require('../../src/authorization')
 const { acl } = require('../../src/modes')
 
 const resourceUrl = 'https://bob.example.com/docs/file1'
+const aclUrl = 'https://bob.example.com/docs/file1.acl'
 const agentWebId = 'https://bob.example.com/profile/card#me'
 // Not really sure what group webIDs will look like, not yet implemented:
 const groupWebId = 'https://devteam.example.com/something'
@@ -29,7 +30,7 @@ test('a new Authorization()', t => {
 })
 
 test('a new Authorization for a container', t => {
-  let auth = new Authorization(resourceUrl, acl.INHERIT)
+  let auth = new Authorization(resourceUrl, aclUrl, acl.INHERIT)
   t.equal(auth.resourceUrl, resourceUrl)
   t.notOk(auth.webId())
   t.notOk(auth.allowsRead())
@@ -208,7 +209,7 @@ test('Comparing Authorizations test 1', t => {
 })
 
 test('Comparing Authorizations test 2', t => {
-  let auth1 = new Authorization(resourceUrl)
+  let auth1 = new Authorization(resourceUrl, aclUrl)
   let auth2 = new Authorization()
   t.notOk(auth1.equals(auth2))
   auth2.resourceUrl = resourceUrl
@@ -237,8 +238,8 @@ test('Comparing Authorizations test 4', t => {
 })
 
 test('Comparing Authorizations test 5', t => {
-  let auth1 = new Authorization(resourceUrl, acl.INHERIT)
-  let auth2 = new Authorization(resourceUrl)
+  let auth1 = new Authorization(resourceUrl, aclUrl, acl.INHERIT)
+  let auth2 = new Authorization(resourceUrl, aclUrl)
   t.notOk(auth1.equals(auth2))
   auth2.inherited = acl.INHERIT
   t.ok(auth1.equals(auth2))
@@ -267,7 +268,7 @@ test('Comparing Authorizations test 7', t => {
 })
 
 test('Authorization.clone() test', t => {
-  let auth1 = new Authorization(resourceUrl, acl.INHERIT)
+  let auth1 = new Authorization(resourceUrl, aclUrl, acl.INHERIT)
   auth1.addMode([acl.READ, acl.WRITE])
   let auth2 = auth1.clone()
   t.ok(auth1.equals(auth2))
@@ -275,7 +276,7 @@ test('Authorization.clone() test', t => {
 })
 
 test('Authorization serialize group test', t => {
-  let auth = new Authorization(resourceUrl)
+  let auth = new Authorization(resourceUrl, aclUrl)
   auth.addMode(acl.READ)
   let groupUrl = 'https://example.com/work-group'
   auth.setGroup(groupUrl)

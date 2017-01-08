@@ -21,11 +21,12 @@ class Authorization {
   /**
    * @param resourceUrl {String} URL of the resource (`acl:accessTo`) for which
    *   this authorization is intended.
+   * @param aclUrl {String} URL of the acl document itself
    * @param [inherited=false] {Boolean} Should this authorization be inherited (contain
    *   `acl:default`). Used for container ACLs.
    * @constructor
    */
-  constructor (resourceUrl, inherited = false) {
+  constructor (resourceUrl, aclUrl, inherited = false) {
     /**
      * Hashmap of all of the access modes (`acl:Write` etc) granted to an agent
      * or group in this authorization. Modified via `addMode()` and `removeMode()`
@@ -85,6 +86,12 @@ class Authorization {
      * @type {String}
      */
     this.resourceUrl = resourceUrl
+    /**
+     * URL of the acl document itself
+     * @property aclUrl
+     * @type {String}
+     */
+    this.aclUrl = aclUrl
     /**
      * Should this authorization be serialized? (When writing back to an ACL
      * resource, for example.) Used for implied (rather than explicit)
@@ -414,47 +421,47 @@ class Authorization {
       return []
     }
     let statement
-    let fragment = rdf.namedNode('#' + this.hashFragment())
+    let authorizationUrl = rdf.namedNode(this.aclUrl + '#' + this.hashFragment())
     let ns = vocab(rdf)
     let statements = [
       rdf.triple(
-        fragment,
+        authorizationUrl,
         ns.rdf('type'),
         ns.acl('Authorization'))
     ]
     if (this.isAgent()) {
-      statement = rdf.triple(fragment, ns.acl('agent'), rdf.namedNode(this.agent))
+      statement = rdf.triple(authorizationUrl, ns.acl('agent'), rdf.namedNode(this.agent))
       statements.push(statement)
     }
     if (this.mailTo.length > 0) {
       this.mailTo.forEach((agentMailto) => {
-        statement = rdf.triple(fragment, ns.acl('agent'),
+        statement = rdf.triple(authorizationUrl, ns.acl('agent'),
           rdf.namedNode('mailto:' + agentMailto))
         statements.push(statement)
       })
     }
     if (this.isPublic()) {
-      statement = rdf.triple(fragment, ns.acl('agentClass'), ns.foaf('Agent'))
+      statement = rdf.triple(authorizationUrl, ns.acl('agentClass'), ns.foaf('Agent'))
       statements.push(statement)
     } else if (this.isGroup()) {
-      statement = rdf.triple(fragment, ns.acl('agentGroup'), rdf.namedNode(this.group))
+      statement = rdf.triple(authorizationUrl, ns.acl('agentGroup'), rdf.namedNode(this.group))
       statements.push(statement)
     }
-    statement = rdf.triple(fragment, ns.acl('accessTo'),
+    statement = rdf.triple(authorizationUrl, ns.acl('accessTo'),
       rdf.namedNode(this.resourceUrl))
     statements.push(statement)
     let modes = Object.keys(this.accessModes)
     modes.forEach((accessMode) => {
-      statement = rdf.triple(fragment, ns.acl('mode'), rdf.namedNode(accessMode))
+      statement = rdf.triple(authorizationUrl, ns.acl('mode'), rdf.namedNode(accessMode))
       statements.push(statement)
     })
     if (this.inherited) {
-      statement = rdf.triple(fragment, ns.acl('defaultForNew'),
+      statement = rdf.triple(authorizationUrl, ns.acl('defaultForNew'),
         rdf.namedNode(this.resourceUrl))
       statements.push(statement)
     }
     this.allOrigins().forEach((origin) => {
-      statement = rdf.triple(fragment, ns.acl('origin'), rdf.namedNode(origin))
+      statement = rdf.triple(authorizationUrl, ns.acl('origin'), rdf.namedNode(origin))
       statements.push(statement)
     })
     return statements

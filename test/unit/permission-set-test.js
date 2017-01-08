@@ -401,4 +401,3 @@ test('PermissionSet groupUris() test', t => {
   t.equals(ps.groupUris(excludePublic).length, 2)
   t.end()
 })
-
